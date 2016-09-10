@@ -19,7 +19,7 @@ First, you have to download the driver's binary to the droplet and make it execu
 ```sh
 curl \
   -o /usr/bin/docker-volume-plugin-dostorage \
-  https://github.com/omallo/docker-volume-plugin-dostorage/releases/download/0.1.0/docker-volume-plugin-dostorage_linux_amd64
+  https://github.com/omallo/docker-volume-plugin-dostorage/releases/download/v0.1.0/docker-volume-plugin-dostorage_linux_amd64
 
 chmod +x /usr/bin/docker-volume-plugin-dostorage
 ```
@@ -47,7 +47,7 @@ Before using the driver for your Docker containers, you must create a [DigitalOc
 ```sh
 sudo mkfs.ext4 -F /dev/disk/by-id/scsi-0DO_Volume_myvol-01
 ```
-An in-depth description on how to create and format DigitalOcean volumes can be found [here]((https://www.digitalocean.com/community/tutorials/how-to-use-block-storage-on-digitalocean)). Please note that a DigitalOcean volume must be created and formatted manually before it can be integrated into Docker using the driver.
+An in-depth description on how to create and format DigitalOcean volumes can be found [here](https://www.digitalocean.com/community/tutorials/how-to-use-block-storage-on-digitalocean). Please note that a DigitalOcean volume must be created and formatted manually before it can be integrated into Docker using the driver.
 
 Once you have created and formatted your DigitalOcean volume, you can create a Docker volume using the same name (assuming a DigitalOcean volume named `myvol-01`):
 ```sh
