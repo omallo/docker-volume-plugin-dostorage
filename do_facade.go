@@ -9,10 +9,12 @@ import (
 	"github.com/digitalocean/godo"
 )
 
-const StorageActionRetryCount = 3
-const StorageActionRetryInterval = 1000 * time.Millisecond
-const StorageActionCompletionPollCount = 60
-const StorageActionCompletionPollInterval = 500 * time.Millisecond
+const (
+	StorageActionRetryCount             = 3
+	StorageActionRetryInterval          = 1000 * time.Millisecond
+	StorageActionCompletionPollCount    = 60
+	StorageActionCompletionPollInterval = 500 * time.Millisecond
+)
 
 type DoFacade struct {
 	metadataClient *metadata.Client

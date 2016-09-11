@@ -11,20 +11,19 @@ import (
 	flag "github.com/ogier/pflag"
 )
 
-const DefaultBaseMountPath = "/mnt/dostorage"
+const (
+	DefaultBaseMountPath   = "/mnt/dostorage"
+	DefaultUnixSocketGroup = "root"
+)
 
 type CommandLineArgs struct {
-	accessToken *string
-	mountPath   *string
+	accessToken     *string
+	mountPath       *string
+	unixSocketGroup *string
 }
 
 func main() {
-	syslogHook, herr := logrus_syslog.NewSyslogHook("", "", syslog.LOG_INFO, DriverName)
-	if herr == nil {
-		logrus.AddHook(syslogHook)
-	} else {
-		logrus.Warn("it was not possible to activate logging to the local syslog")
-	}
+	configureLogging()
 
 	args := parseCommandLineArgs()
 
@@ -42,7 +41,7 @@ func main() {
 
 	handler := volume.NewHandler(driver)
 
-	serr := handler.ServeUnix("root", DriverName)
+	serr := handler.ServeUnix(*args.unixSocketGroup, DriverName)
 	if serr != nil {
 		logrus.Fatalf("failed to bind to the Unix socket: %v", serr)
 		os.Exit(1)
@@ -53,11 +52,21 @@ func main() {
 	}
 }
 
+func configureLogging() {
+	syslogHook, herr := logrus_syslog.NewSyslogHook("", "", syslog.LOG_INFO, DriverName)
+	if herr == nil {
+		logrus.AddHook(syslogHook)
+	} else {
+		logrus.Warn("it was not possible to activate logging to the local syslog")
+	}
+}
+
 func parseCommandLineArgs() *CommandLineArgs {
 	args := &CommandLineArgs{}
 
 	args.accessToken = flag.StringP("access-token", "t", "", "the DigitalOcean API access token")
 	args.mountPath = flag.StringP("mount-path", "m", DefaultBaseMountPath, "the path under which to create the volume mount folders")
+	args.unixSocketGroup = flag.StringP("unix-socket-group", "g", DefaultUnixSocketGroup, "the group to assign to the Unix socket file")
 	flag.Parse()
 
 	if *args.accessToken == "" {

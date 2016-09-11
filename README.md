@@ -39,6 +39,8 @@ Usage of docker-volume-plugin-dostorage:
         the DigitalOcean API access token
   -m, --mount-path string
         the path under which to create the volume mount folders (default "/mnt/dostorage")
+  -g, --unix-socket-group string
+        the group to assign to the Unix socket file (default "root")
 ```
 
 Docker plugins should usually be started before the Docker engine so it is advisable to restart the Docker engine after installing the driver. Depending on your Linux distribution, this can be done using either the `service` command
