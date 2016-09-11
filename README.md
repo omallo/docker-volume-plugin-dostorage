@@ -17,22 +17,22 @@ For installing the driver on a DigitalOcean droplet, you will need the following
 
 First, you have to download the driver's binary to the droplet and make it executable (make sure you download the binary for the appropriate release version and Linux platform/architecture):
 ```sh
-curl \
+sudo curl \
   -sSL \
   -o /usr/bin/docker-volume-plugin-dostorage \
   https://github.com/omallo/docker-volume-plugin-dostorage/releases/download/v0.1.0/docker-volume-plugin-dostorage_linux_amd64
 
-chmod +x /usr/bin/docker-volume-plugin-dostorage
+sudo chmod +x /usr/bin/docker-volume-plugin-dostorage
 ```
 
 Once downloaded, the driver can be started in the background as follows by providing your DigitalOcean API access token:
 ```sh
-docker-volume-plugin-dostorage --access-token=<your-API-Access-Token> &
+sudo docker-volume-plugin-dostorage --access-token=<your-API-Access-Token> &
 ```
 
 Other command line arguments supported by the driver can be shown by invoking the driver without any argument:
 ```sh
-docker-volume-plugin-dostorage
+sudo docker-volume-plugin-dostorage
 
 Usage of docker-volume-plugin-dostorage:
   -t, --access-token string
@@ -43,11 +43,11 @@ Usage of docker-volume-plugin-dostorage:
 
 Docker plugins should usually be started before the Docker engine so it is advisable to restart the Docker engine after installing the driver. Depending on your Linux distribution, this can be done using either the `service` command
 ```sh
-service docker restart
+sudo service docker restart
 ```
 or the `systemctl` command
 ```sh
-systemctl restart docker
+sudo systemctl restart docker
 ```
 
 You are now ready to use the driver for your Docker containers!
