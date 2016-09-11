@@ -130,3 +130,9 @@ The driver logs to the STDOUT as well as to the local `syslog` instance (if supp
 ## Systemd Integration
 
 It is advisable to use `systemd` to manage the startup and shutdown of the driver. Details on how to configure `systemd` for a Docker plugin (including socket activation), can be found [here](https://docs.docker.com/engine/extend/plugin_api/).
+
+
+## Known Limitations
+
+The following are some of the main known limitations of the driver:
+- No mount configuration options are currently supported ([issue #1](https://github.com/omallo/docker-volume-plugin-dostorage/issues/1)).
