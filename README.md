@@ -41,6 +41,8 @@ Usage of docker-volume-plugin-dostorage:
         the path under which to create the volume mount folders (default "/mnt/dostorage")
   -g, --unix-socket-group string
         the group to assign to the Unix socket file (default "root")
+  --version
+        outputs the driver version and exits
 ```
 
 Docker plugins should usually be started before the Docker engine so it is advisable to restart the Docker engine after installing the driver. Depending on your Linux distribution, this can be done using either the `service` command

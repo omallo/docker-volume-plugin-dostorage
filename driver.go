@@ -10,7 +10,10 @@ import (
 	"github.com/docker/go-plugins-helpers/volume"
 )
 
-const DriverName = "dostorage"
+const (
+	DriverName    = "dostorage"
+	DriverVersion = "0.2.0-SNAPSHOT"
+)
 
 type Driver struct {
 	region        string

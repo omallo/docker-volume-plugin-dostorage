@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log/syslog"
 	"os"
 
@@ -20,6 +21,7 @@ type CommandLineArgs struct {
 	accessToken     *string
 	mountPath       *string
 	unixSocketGroup *string
+	version         *bool
 }
 
 func main() {
@@ -67,7 +69,13 @@ func parseCommandLineArgs() *CommandLineArgs {
 	args.accessToken = flag.StringP("access-token", "t", "", "the DigitalOcean API access token")
 	args.mountPath = flag.StringP("mount-path", "m", DefaultBaseMountPath, "the path under which to create the volume mount folders")
 	args.unixSocketGroup = flag.StringP("unix-socket-group", "g", DefaultUnixSocketGroup, "the group to assign to the Unix socket file")
+	args.version = flag.Bool("version", false, "outputs the driver version and exits")
 	flag.Parse()
+
+	if *args.version {
+		fmt.Printf("%v\n", DriverVersion)
+		os.Exit(0)
+	}
 
 	if *args.accessToken == "" {
 		flag.Usage()
