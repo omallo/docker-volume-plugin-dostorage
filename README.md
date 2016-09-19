@@ -20,7 +20,7 @@ First, you have to download the driver's binary to the droplet and make it execu
 sudo curl \
   -sSL \
   -o /usr/bin/docker-volume-plugin-dostorage \
-  https://github.com/omallo/docker-volume-plugin-dostorage/releases/download/v0.1.0/docker-volume-plugin-dostorage_linux_amd64
+  https://github.com/omallo/docker-volume-plugin-dostorage/releases/download/v0.2.0/docker-volume-plugin-dostorage_linux_amd64
 
 sudo chmod +x /usr/bin/docker-volume-plugin-dostorage
 ```

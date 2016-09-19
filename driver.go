@@ -12,7 +12,7 @@ import (
 
 const (
 	DriverName    = "dostorage"
-	DriverVersion = "0.2.0-SNAPSHOT"
+	DriverVersion = "0.2.0"
 )
 
 type Driver struct {
