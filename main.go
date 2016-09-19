@@ -14,7 +14,7 @@ import (
 
 const (
 	DefaultBaseMountPath   = "/mnt/dostorage"
-	DefaultUnixSocketGroup = "root"
+	DefaultUnixSocketGroup = "docker"
 )
 
 type CommandLineArgs struct {

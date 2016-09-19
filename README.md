@@ -40,7 +40,7 @@ Usage of docker-volume-plugin-dostorage:
   -m, --mount-path string
         the path under which to create the volume mount folders (default "/mnt/dostorage")
   -g, --unix-socket-group string
-        the group to assign to the Unix socket file (default "root")
+        the group to assign to the Unix socket file (default "docker")
   --version
         outputs the driver version and exits
 ```
