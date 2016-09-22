@@ -133,7 +133,74 @@ The driver logs to the STDOUT as well as to the local `syslog` instance (if supp
 
 ## Systemd Integration
 
-It is advisable to use `systemd` to manage the startup and shutdown of the driver. Details on how to configure `systemd` for a Docker plugin (including socket activation), can be found [here](https://docs.docker.com/engine/extend/plugin_api/).
+It is advisable to use `systemd` to manage the startup and shutdown of the driver. Details on how to configure `systemd` for a Docker plugin (including socket activation), can be found [here](https://docs.docker.com/engine/extend/plugin_api/). The following are some *sample* `systemd` configuration files you can use to achieve different levels of automation:
+- The following `dostorage-download.service` unit file can be used to automate the download of the driver:
+  ```
+  [Unit]
+  Description=Download for Docker Volume Driver for DigitalOcean
+  Before=dostorage.service
+  After=network.target
+
+  [Service]
+  Environment=DOWNLOAD_URL=https://github.com/omallo/docker-volume-plugin-dostorage/releases/download/v0.2.0/docker-volume-plugin-dostorage_linux_amd64
+  ExecStart=/usr/bin/curl -sSL -o /usr/bin/docker-volume-plugin-dostorage $DOWNLOAD_URL
+  ExecStartPost=/bin/chmod +x /usr/bin/docker-volume-plugin-dostorage
+  Type=oneshot
+
+  [Install]
+  WantedBy=multi-user.target
+  ```
+- The following `dostorage.service` unit file can be used to automate the execution of the driver:
+  ```
+  [Unit]
+  Description=Docker Volume Driver for DigitalOcean
+  Before=docker.service
+  After=network.target dostorage.socket
+  Requires=dostorage.socket docker.service
+
+  [Service]
+  ExecStart=/usr/bin/docker-volume-plugin-dostorage --access-token=<your-API-Access-Token>
+
+  [Install]
+  WantedBy=multi-user.target
+  ```
+- The following `dostorage.socket` unit file can be used to make use of socket activation for executing the driver lazily:
+  ```
+  [Unit]
+  Description=Socket for Docker Volume Driver for DigitalOcean
+
+  [Socket]
+  ListenStream=/var/run/docker/plugins/dostorage.sock
+  SocketUser=root
+  SocketGroup=docker
+  SocketMode=0660
+
+  [Install]
+  WantedBy=sockets.target
+  ```
+
+The `systemd` configuration files can be copied to `/etc/systemd/system` or a similar location, depending on your Linux distribution. You can then activate the services either with socket activation
+```sh
+# download the driver (one time execution)
+sudo systemctl start dostorage-download
+
+# create the Unix socket which is used to execute the driver on demand only
+sudo systemctl start dostorage.socket
+
+# enable automated startup on reboot
+sudo systemctl enable dostorage.socket
+```
+or by directly executing the driver
+```sh
+# download the driver (one time execution)
+sudo systemctl start dostorage-download
+
+# execute the driver directly
+sudo systemctl start dostorage
+
+# enable automated startup on reboot
+sudo systemctl enable dostorage
+```
 
 
 ## Known Limitations
