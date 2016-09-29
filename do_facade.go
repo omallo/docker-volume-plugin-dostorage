@@ -14,6 +14,7 @@ const (
 	StorageActionRetryInterval          = 1000 * time.Millisecond
 	StorageActionCompletionPollCount    = 60
 	StorageActionCompletionPollInterval = 500 * time.Millisecond
+	MaxResultsPerPage                   = 200
 )
 
 type DoFacade struct {
@@ -42,11 +43,16 @@ func (s DoFacade) GetVolume(volumeID string) (*godo.Volume, error) {
 }
 
 func (s DoFacade) GetVolumeByRegionAndName(region string, name string) *godo.Volume {
-	doVolumes, _, _ := s.apiClient.Storage.ListVolumes(&godo.ListOptions{PerPage: 1000000})
+	doVolumes, _, err := s.apiClient.Storage.ListVolumes(&godo.ListOptions{Page: 1, PerPage: MaxResultsPerPage})
 
-	for _, doVolume := range doVolumes {
-		if doVolume.Region.Slug == region && doVolume.Name == name {
-			return &doVolume
+	if err != nil {
+		logrus.Errorf("failed to get the volume by region and name: %v", err)
+		return nil
+	}
+
+	for i := range doVolumes {
+		if doVolumes[i].Region.Slug == region && doVolumes[i].Name == name {
+			return &doVolumes[i]
 		}
 	}
 	return nil
