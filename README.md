@@ -20,7 +20,7 @@ First, you have to download the driver's binary to the droplet and make it execu
 sudo curl \
   -sSL \
   -o /usr/bin/docker-volume-plugin-dostorage \
-  https://github.com/omallo/docker-volume-plugin-dostorage/releases/download/v0.2.0/docker-volume-plugin-dostorage_linux_amd64
+  https://github.com/omallo/docker-volume-plugin-dostorage/releases/download/v0.3.0/docker-volume-plugin-dostorage_linux_amd64
 
 sudo chmod +x /usr/bin/docker-volume-plugin-dostorage
 ```
@@ -142,7 +142,7 @@ It is advisable to use `systemd` to manage the startup and shutdown of the drive
   After=network.target
 
   [Service]
-  Environment=DOWNLOAD_URL=https://github.com/omallo/docker-volume-plugin-dostorage/releases/download/v0.2.0/docker-volume-plugin-dostorage_linux_amd64
+  Environment=DOWNLOAD_URL=https://github.com/omallo/docker-volume-plugin-dostorage/releases/download/v0.3.0/docker-volume-plugin-dostorage_linux_amd64
   ExecStart=/usr/bin/curl -sSL -o /usr/bin/docker-volume-plugin-dostorage $DOWNLOAD_URL
   ExecStartPost=/bin/chmod +x /usr/bin/docker-volume-plugin-dostorage
   Type=oneshot
