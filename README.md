@@ -133,23 +133,7 @@ The driver logs to the STDOUT as well as to the local `syslog` instance (if supp
 
 ## Systemd Integration
 
-It is advisable to use `systemd` to manage the startup and shutdown of the driver. Details on how to configure `systemd` for a Docker plugin (including socket activation), can be found [here](https://docs.docker.com/engine/extend/plugin_api/). The following are some *sample* `systemd` configuration files you can use to achieve different levels of automation:
-- The following `dostorage-download.service` unit file can be used to automate the download of the driver:
-  ```
-  [Unit]
-  Description=Download for Docker Volume Driver for DigitalOcean
-  Before=dostorage.service
-  After=network.target
-
-  [Service]
-  Environment=DOWNLOAD_URL=https://github.com/omallo/docker-volume-plugin-dostorage/releases/download/v0.3.0/docker-volume-plugin-dostorage_linux_amd64
-  ExecStart=/usr/bin/curl -sSL -o /usr/bin/docker-volume-plugin-dostorage $DOWNLOAD_URL
-  ExecStartPost=/bin/chmod +x /usr/bin/docker-volume-plugin-dostorage
-  Type=oneshot
-
-  [Install]
-  WantedBy=multi-user.target
-  ```
+It is advisable to use `systemd` to manage the startup and shutdown of the driver. Details on how to configure `systemd` for a Docker plugin, can be found [here](https://docs.docker.com/engine/extend/plugin_api/). The following are some *sample* `systemd` configuration files you can use as a starting point:
 - The following `dostorage.service` unit file can be used to automate the execution of the driver:
   ```
   [Unit]
@@ -179,27 +163,21 @@ It is advisable to use `systemd` to manage the startup and shutdown of the drive
   WantedBy=sockets.target
   ```
 
-The `systemd` configuration files can be copied to `/etc/systemd/system` or a similar location, depending on your Linux distribution. You can then activate the services either with socket activation
+The `systemd` configuration files can be copied to `/etc/systemd/system` or a similar location, depending on your Linux distribution. You can then activate the services either by directly executing the driver
 ```sh
-# download the driver (one time execution)
-sudo systemctl start dostorage-download
+# execute the driver directly
+sudo systemctl start dostorage.service
 
+# enable automated startup on reboot
+sudo systemctl enable dostorage.service
+```
+or using socket activation
+```sh
 # create the Unix socket which is used to execute the driver on demand only
 sudo systemctl start dostorage.socket
 
 # enable automated startup on reboot
 sudo systemctl enable dostorage.socket
-```
-or by directly executing the driver
-```sh
-# download the driver (one time execution)
-sudo systemctl start dostorage-download
-
-# execute the driver directly
-sudo systemctl start dostorage
-
-# enable automated startup on reboot
-sudo systemctl enable dostorage
 ```
 
 
