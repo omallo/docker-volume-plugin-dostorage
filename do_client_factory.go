@@ -5,21 +5,8 @@ import (
 	"golang.org/x/oauth2"
 )
 
-type accessTokenSource struct {
-	AccessToken string
-}
-
-func (t *accessTokenSource) Token() (*oauth2.Token, error) {
-	token := &oauth2.Token{
-		AccessToken: t.AccessToken,
-	}
-	return token, nil
-}
-
 func NewDoAPIClient(accessToken string) *godo.Client {
-	accessTokenSource := &accessTokenSource{
-		AccessToken: accessToken,
-	}
+	accessTokenSource := oauth2.StaticTokenSource(&oauth2.Token{AccessToken: accessToken})
 
 	oauthClient := oauth2.NewClient(oauth2.NoContext, accessTokenSource)
 	client := godo.NewClient(oauthClient)
