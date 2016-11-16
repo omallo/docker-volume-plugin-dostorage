@@ -93,7 +93,7 @@ func (s DoFacade) DetachVolumeFromDroplet(volumeID string, dropletID int) error 
 	var lastErr error
 
 	for i := 1; i <= StorageActionRetryCount; i++ {
-		action, _, derr := s.apiClient.StorageActions.Detach(volumeID, dropletID)
+		action, _, derr := s.apiClient.StorageActions.DetachByDropletID(volumeID, dropletID)
 		if derr != nil {
 			logrus.Errorf("failed to detach the volume: %v", lastErr)
 			time.Sleep(StorageActionRetryInterval)
