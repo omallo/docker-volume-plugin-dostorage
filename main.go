@@ -20,7 +20,8 @@ const (
 
 var (
 	// will be set if built using govvv
-	GitSummary string
+	GitSummary    string
+	DriverVersion = GitSummary
 )
 
 type CommandLineArgs struct {
@@ -81,7 +82,7 @@ func parseCommandLineArgs() *CommandLineArgs {
 	flag.Parse()
 
 	if *args.version {
-		fmt.Printf("%v\n", GitSummary)
+		fmt.Printf("%v\n", DriverVersion)
 		os.Exit(0)
 	}
 
