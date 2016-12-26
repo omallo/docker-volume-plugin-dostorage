@@ -18,6 +18,11 @@ const (
 	DefaultUnixSocketGroup  = "docker"
 )
 
+var (
+	// will be set if built using govvv
+	GitSummary string
+)
+
 type CommandLineArgs struct {
 	accessToken     *string
 	metadataPath    *string
@@ -76,7 +81,7 @@ func parseCommandLineArgs() *CommandLineArgs {
 	flag.Parse()
 
 	if *args.version {
-		fmt.Printf("%v\n", DriverVersion)
+		fmt.Printf("%v\n", GitSummary)
 		os.Exit(0)
 	}
 
