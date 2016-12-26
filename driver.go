@@ -13,7 +13,7 @@ import (
 
 const (
 	DriverName       = "dostorage"
-	DriverVersion    = "0.4.0-SNAPSHOT"
+	DriverVersion    = "0.4.0"
 	MetadataDirMode  = 0700
 	MetadataFileMode = 0600
 	MountDirMode     = os.ModeDir

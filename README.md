@@ -20,7 +20,7 @@ First, you have to download the driver's binary to the droplet and make it execu
 sudo curl \
   -sSL \
   -o /usr/bin/docker-volume-plugin-dostorage \
-  https://github.com/omallo/docker-volume-plugin-dostorage/releases/download/v0.3.0/docker-volume-plugin-dostorage_linux_amd64
+  https://github.com/omallo/docker-volume-plugin-dostorage/releases/download/v0.4.0/docker-volume-plugin-dostorage_linux_amd64
 
 sudo chmod +x /usr/bin/docker-volume-plugin-dostorage
 ```
@@ -36,13 +36,15 @@ sudo docker-volume-plugin-dostorage
 
 Usage of docker-volume-plugin-dostorage:
   -t, --access-token string
-        the DigitalOcean API access token
+    	the DigitalOcean API access token
+  --metadata-path string
+    	the path under which to store volume metadata (default "/etc/docker/plugins/dostorage/volumes")
   -m, --mount-path string
-        the path under which to create the volume mount folders (default "/mnt/dostorage")
+    	the path under which to create the volume mount folders (default "/mnt/dostorage")
   -g, --unix-socket-group string
-        the group to assign to the Unix socket file (default "docker")
+    	the group to assign to the Unix socket file (default "docker")
   --version
-        outputs the driver version and exits
+    	outputs the driver version and exits
 ```
 
 Docker plugins should usually be started before the Docker engine so it is advisable to restart the Docker engine after installing the driver. Depending on your Linux distribution, this can be done using either the `service` command
