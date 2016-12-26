@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"sync"
@@ -11,18 +12,22 @@ import (
 )
 
 const (
-	DriverName    = "dostorage"
-	DriverVersion = "0.4.0-SNAPSHOT"
+	DriverName       = "dostorage"
+	DriverVersion    = "0.4.0-SNAPSHOT"
+	MetadataDirMode  = 0700
+	MetadataFileMode = 0600
+	MountDirMode     = os.ModeDir
 )
 
 type Driver struct {
-	region        string
-	dropletID     int
-	volumes       map[string]*VolumeState
-	baseMountPath string
-	doFacade      *DoFacade
-	mountUtil     *MountUtil
-	m             *sync.Mutex
+	region           string
+	dropletID        int
+	volumes          map[string]*VolumeState
+	baseMetadataPath string
+	baseMountPath    string
+	doFacade         *DoFacade
+	mountUtil        *MountUtil
+	m                *sync.Mutex
 }
 
 type VolumeState struct {
@@ -31,7 +36,7 @@ type VolumeState struct {
 	referenceCount int
 }
 
-func NewDriver(doFacade *DoFacade, mountUtil *MountUtil, baseMountPath string) (*Driver, error) {
+func NewDriver(doFacade *DoFacade, mountUtil *MountUtil, baseMetadataPath string, baseMountPath string) (*Driver, error) {
 	logrus.Info("creating a new driver instance")
 
 	region, rerr := doFacade.GetLocalRegion()
@@ -44,22 +49,35 @@ func NewDriver(doFacade *DoFacade, mountUtil *MountUtil, baseMountPath string) (
 		return nil, derr
 	}
 
-	merr := os.MkdirAll(baseMountPath, os.ModeDir)
+	merr := os.MkdirAll(baseMetadataPath, MetadataDirMode)
 	if merr != nil {
 		return nil, merr
 	}
 
+	terr := os.MkdirAll(baseMountPath, MountDirMode)
+	if terr != nil {
+		return nil, terr
+	}
+
 	logrus.Infof("droplet metadata: region='%v', dropletID=%v", region, dropletID)
 
-	return &Driver{
-		region:        region,
-		dropletID:     dropletID,
-		volumes:       make(map[string]*VolumeState),
-		baseMountPath: baseMountPath,
-		doFacade:      doFacade,
-		mountUtil:     mountUtil,
-		m:             &sync.Mutex{},
-	}, nil
+	driver := &Driver{
+		region:           region,
+		dropletID:        dropletID,
+		volumes:          make(map[string]*VolumeState),
+		baseMetadataPath: baseMetadataPath,
+		baseMountPath:    baseMountPath,
+		doFacade:         doFacade,
+		mountUtil:        mountUtil,
+		m:                &sync.Mutex{},
+	}
+
+	ierr := driver.initVolumesFromMetadata()
+	if ierr != nil {
+		return nil, ierr
+	}
+
+	return driver, nil
 }
 
 func (d Driver) Create(r volume.Request) volume.Response {
@@ -68,27 +86,27 @@ func (d Driver) Create(r volume.Request) volume.Response {
 	d.m.Lock()
 	defer d.m.Unlock()
 
-	doVolume := d.doFacade.GetVolumeByRegionAndName(d.region, r.Name)
-	if doVolume == nil {
-		logrus.Errorf("DigitalOcean volume not found for region '%v' and name '%v'", d.region, r.Name)
-		return volume.Response{Err: fmt.Sprintf("DigitalOcean volume not found for region '%v' and name '%v'", d.region, r.Name)}
+	volumeState, ierr := d.initVolume(r.Name)
+	if ierr != nil {
+		return volume.Response{Err: ierr.Error()}
 	}
 
-	volumePath := filepath.Join(d.baseMountPath, r.Name)
+	metadataFilePath := filepath.Join(d.baseMetadataPath, r.Name)
 
-	merr := os.MkdirAll(volumePath, os.ModeDir)
-	if merr != nil {
-		logrus.Errorf("failed to create the volume mount path '%v'", volumePath)
-		return volume.Response{Err: fmt.Sprintf("failed to create the volume mount path '%v'", volumePath)}
+	metadataFile, ferr := os.Create(metadataFilePath)
+	if ferr != nil {
+		logrus.Errorf("failed to create metadata file '%v' for volume '%v'", metadataFilePath, r.Name)
+		return volume.Response{Err: ferr.Error()}
 	}
 
-	d.mountUtil.UnmountVolume(r.Name, volumePath)
-
-	d.volumes[r.Name] = &VolumeState{
-		doVolumeID:     doVolume.ID,
-		mountpoint:     volumePath,
-		referenceCount: 0,
+	cerr := metadataFile.Chmod(MetadataFileMode)
+	if cerr != nil {
+		os.Remove(metadataFilePath)
+		logrus.Errorf("failed to change the mode for the metadata file '%v' for volume '%v'", metadataFilePath, r.Name)
+		return volume.Response{Err: cerr.Error()}
 	}
+
+	d.volumes[r.Name] = volumeState
 
 	return volume.Response{}
 }
@@ -143,7 +161,16 @@ func (d Driver) Remove(r volume.Request) volume.Response {
 	defer d.m.Unlock()
 
 	if _, ok := d.volumes[r.Name]; ok {
+		metadataFilePath := filepath.Join(d.baseMetadataPath, r.Name)
+
+		rerr := os.Remove(metadataFilePath)
+		if rerr != nil {
+			logrus.Errorf("failed to delete metadata file '%v' for volume '%v", metadataFilePath, r.Name)
+			return volume.Response{Err: fmt.Sprintf("failed to delete metadata file '%v' for volume '%v", metadataFilePath, r.Name)}
+		}
+
 		delete(d.volumes, r.Name)
+
 		return volume.Response{}
 	}
 
@@ -201,7 +228,6 @@ func (d Driver) Mount(r volume.MountRequest) volume.Response {
 
 	logrus.Errorf("volume named '%v' not found", r.Name)
 	return volume.Response{Err: fmt.Sprintf("volume named '%v' not found", r.Name)}
-
 }
 
 func (d Driver) Unmount(r volume.UnmountRequest) volume.Response {
@@ -233,4 +259,53 @@ func (d Driver) Capabilities(r volume.Request) volume.Response {
 	return volume.Response{
 		Capabilities: volume.Capability{Scope: "local"},
 	}
+}
+
+func (d Driver) initVolumesFromMetadata() error {
+	metadataFiles, ferr := ioutil.ReadDir(d.baseMetadataPath)
+	if ferr != nil {
+		return ferr
+	}
+
+	for _, metadataFile := range metadataFiles {
+		volumeName := metadataFile.Name()
+		metadataFilePath := filepath.Join(d.baseMetadataPath, volumeName)
+
+		logrus.Infof("Initializing volume '%v' from metadata file '%v'", volumeName, metadataFilePath)
+
+		volumeState, ierr := d.initVolume(volumeName)
+		if ierr != nil {
+			return ierr
+		}
+
+		d.volumes[volumeName] = volumeState
+	}
+
+	return nil
+}
+
+func (d Driver) initVolume(name string) (*VolumeState, error) {
+	doVolume := d.doFacade.GetVolumeByRegionAndName(d.region, name)
+	if doVolume == nil {
+		logrus.Errorf("DigitalOcean volume not found for region '%v' and name '%v'", d.region, name)
+		return nil, fmt.Errorf("DigitalOcean volume not found for region '%v' and name '%v'", d.region, name)
+	}
+
+	volumePath := filepath.Join(d.baseMountPath, name)
+
+	merr := os.MkdirAll(volumePath, MountDirMode)
+	if merr != nil {
+		logrus.Errorf("failed to create the volume mount path '%v'", volumePath)
+		return nil, fmt.Errorf("failed to create the volume mount path '%v'", volumePath)
+	}
+
+	d.mountUtil.UnmountVolume(name, volumePath)
+
+	volumeState := &VolumeState{
+		doVolumeID:     doVolume.ID,
+		mountpoint:     volumePath,
+		referenceCount: 0,
+	}
+
+	return volumeState, nil
 }

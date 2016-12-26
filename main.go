@@ -13,12 +13,14 @@ import (
 )
 
 const (
-	DefaultBaseMountPath   = "/mnt/dostorage"
-	DefaultUnixSocketGroup = "docker"
+	DefaultBaseMetadataPath = "/etc/docker/plugins/dostorage/volumes"
+	DefaultBaseMountPath    = "/mnt/dostorage"
+	DefaultUnixSocketGroup  = "docker"
 )
 
 type CommandLineArgs struct {
 	accessToken     *string
+	metadataPath    *string
 	mountPath       *string
 	unixSocketGroup *string
 	version         *bool
@@ -35,7 +37,7 @@ func main() {
 
 	mountUtil := NewMountUtil()
 
-	driver, derr := NewDriver(doFacade, mountUtil, *args.mountPath)
+	driver, derr := NewDriver(doFacade, mountUtil, *args.metadataPath, *args.mountPath)
 	if derr != nil {
 		logrus.Fatalf("failed to create the driver: %v", derr)
 		os.Exit(1)
@@ -67,6 +69,7 @@ func parseCommandLineArgs() *CommandLineArgs {
 	args := &CommandLineArgs{}
 
 	args.accessToken = flag.StringP("access-token", "t", "", "the DigitalOcean API access token")
+	args.metadataPath = flag.String("metadata-path", DefaultBaseMetadataPath, "the path under which to store volume metadata")
 	args.mountPath = flag.StringP("mount-path", "m", DefaultBaseMountPath, "the path under which to create the volume mount folders")
 	args.unixSocketGroup = flag.StringP("unix-socket-group", "g", DefaultUnixSocketGroup, "the group to assign to the Unix socket file")
 	args.version = flag.Bool("version", false, "outputs the driver version and exits")
