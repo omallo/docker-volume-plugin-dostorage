@@ -1,7 +1,7 @@
 Docker Volume Driver for DigitalOcean
 =====================================
 
-This repo hosts the Docker Volume Driver for DigitalOcean. The driver is based on the [Docker Volume Plugin framework](https://docs.docker.com/engine/extend/plugins_volume/) and it integrates DigitalOcean's [block storage solution](https://www.digitalocean.com/community/tutorials/how-to-use-block-storage-on-digitalocean) into the Docker ecosystem by automatically attaching a given block storage volume to a DigitalOcean droplet and making the contents of the volume available to Docker containers running on that droplet.
+This repo hosts the Docker Volume Driver for DigitalOcean. The driver is based on the [Docker Volume Plugin framework](https://docs.docker.com/engine/extend/plugins_volume/) and it integrates DigitalOcean's [block storage solution](https://www.digitalocean.com/products/storage/) into the Docker ecosystem by automatically attaching a given block storage volume to a DigitalOcean droplet and making the contents of the volume available to Docker containers running on that droplet.
 
 
 ## Download
